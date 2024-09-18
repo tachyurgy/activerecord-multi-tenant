@@ -79,6 +79,7 @@ ARGV.grep(/\w+_spec\.rb/).empty? && ActiveRecord::Schema.define(version: 1) do
     t.column :commentable_id, :integer
     t.column :commentable_type, :string
     t.column :replies_count, :integer, default: 0
+    t.column :locked, :integer, default: 0
   end
 
   create_table :partition_key_not_model_tasks, force: true, partition_key: :non_model_id do |t|

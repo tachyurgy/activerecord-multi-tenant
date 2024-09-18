@@ -38,7 +38,6 @@ describe 'Query Rewriter' do
     end
 
     it 'treats Arel.sql values as SQL expressions inside a tenant' do
-      pending 'update_all inside MultiTenant.with quotes Arel.sql values as literals (#278)'
       other_account = Account.create!(name: 'Other Account')
       other_project = Project.create!(name: 'Project 2', account: other_account)
 
@@ -84,6 +83,9 @@ describe 'Query Rewriter' do
       @queries.each do |actual_query|
         next unless actual_query.include?('UPDATE "projects" SET "name"')
 
+        # Extract parameterized values and replace placeholders
+        actual_query = actual_query.gsub('$1', "'New Name'")
+
         expect(format_sql(actual_query)).to eq(format_sql(expected_query.gsub(':account_id', account.id.to_s)))
       end
     end
@@ -119,6 +121,9 @@ describe 'Query Rewriter' do
 
       @queries.each do |actual_query|
         next unless actual_query.include?('UPDATE "projects" SET "name"')
+
+        # Extract parameterized values and replace placeholders
+        actual_query = actual_query.gsub('$1', "'#{new_name}'").gsub('$2', limit.to_s)
 
         expect(format_sql(actual_query.gsub('$1',
                                             limit.to_s)).strip).to eq(format_sql(expected_query).strip)
@@ -255,8 +260,6 @@ describe 'Query Rewriter' do
     let!(:comment) { Comment.create!(account_id: account.id, commentable_id: 1, commentable_type: 'Post') }
 
     it 'increments the counter with increment_counter inside a tenant' do
-      pending 'increment_counter inside MultiTenant.with sets the counter to NULL (#279)'
-
       MultiTenant.with(account) do
         Comment.increment_counter(:replies_count, comment.id)
       end
@@ -265,8 +268,6 @@ describe 'Query Rewriter' do
     end
 
     it 'applies update_counters inside a tenant' do
-      pending 'update_counters inside MultiTenant.with sets the counter to NULL (#279)'
-
       MultiTenant.with(account) do
         Comment.update_counters(comment.id, replies_count: 3)
         Comment.update_counters(comment.id, replies_count: -1)
@@ -290,6 +291,43 @@ describe 'Query Rewriter' do
           Page.joins(:domain).pluck(:id)
         end
       ).to eq([page_in_alive_domain.id])
+    end
+  end
+
+  context 'when updating locked column in comments' do
+    let!(:account) { Account.create!(name: 'Test Account') }
+    let!(:comment1) { Comment.create!(account_id: account.id, commentable_id: 1, commentable_type: 'Post') }
+    let!(:comment2) { Comment.create!(account_id: account.id, commentable_id: 2, commentable_type: 'Post') }
+
+    it 'updates the locked column for all records' do
+      expect do
+        Comment.update_all(locked: 1)
+      end.to change { Comment.where(locked: 1).count }.from(0).to(2)
+    end
+
+    it 'update_all the records with expected query' do
+      expected_query = <<-SQL.strip
+        UPDATE "comments" SET "locked" = 1 WHERE "comments"."id" IN
+          (SELECT "comments"."id" FROM "comments"
+              WHERE "comments"."account_id" = :account_id
+          )
+          AND "comments"."account_id" = :account_id
+      SQL
+
+      expect do
+        MultiTenant.with(account) do
+          Comment.update_all(locked: 1)
+        end
+      end.to change { Comment.where(locked: 1).count }.from(0).to(2)
+
+      @queries.each do |actual_query|
+        next unless actual_query.include?('UPDATE "comments" SET "locked"')
+
+        # Extract parameterized values and replace placeholders
+        actual_query = actual_query.gsub('$1', '1')
+
+        expect(format_sql(actual_query)).to eq(format_sql(expected_query.gsub(':account_id', account.id.to_s)))
+      end
     end
   end
 end
