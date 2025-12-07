@@ -330,4 +330,17 @@ describe 'Query Rewriter' do
       end
     end
   end
+
+  context 'when using decrement or increment' do
+    let!(:account) { Account.create!(name: 'Test Account') }
+    let!(:comment) { Comment.create!(account_id: account.id, commentable_id: 1, commentable_type: 'Post', locked: 1) }
+
+    it 'increments and decrements the column `locked`' do
+      expect do
+        comment.increment!(:locked)
+        comment.increment!(:locked)
+        comment.decrement!(:locked)
+      end.to change { comment.reload.locked }.from(1).to(2)
+    end
+  end
 end
