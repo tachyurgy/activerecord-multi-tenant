@@ -1,5 +1,16 @@
-# activerecord-multi-tenant 
-[![Build Status](https://github.com/citusdata/activerecord-multi-tenant/actions/workflows/active-record-multi-tenant-tests.yml/badge.svg)](https://github.com/citusdata/activerecord-multi-tenant/actions/workflows/active-record-multi-tenant-tests.yml) [![codecov](https://codecov.io/gh/citusdata/activerecord-multi-tenant/branch/master/graph/badge.svg?token=rw0TsEk4Ld)](https://codecov.io/gh/citusdata/activerecord-multi-tenant) [ ![Gems Version](https://img.shields.io/gem/v/activerecord-multi-tenant.svg)](https://rubygems.org/gems/activerecord-multi-tenant)[ ![Gem Download Count](https://img.shields.io/gem/dt/activerecord-multi-tenant.svg)](https://rubygems.org/gems/activerecord-multi-tenant) [![Documentation Status](https://readthedocs.org/projects/activerecord-multi-tenant/badge/?version=latest)](https://activerecord-multi-tenant.readthedocs.io/en/latest/?badge=latest) 
+# activerecord-multi-tenant-next
+[![Tests](https://github.com/tachyurgy/activerecord-multi-tenant/actions/workflows/active-record-multi-tenant-tests.yml/badge.svg)](https://github.com/tachyurgy/activerecord-multi-tenant/actions/workflows/active-record-multi-tenant-tests.yml) [![Gem Version](https://img.shields.io/gem/v/activerecord-multi-tenant-next.svg)](https://rubygems.org/gems/activerecord-multi-tenant-next)
+
+A maintained fork of [citusdata/activerecord-multi-tenant](https://github.com/citusdata/activerecord-multi-tenant).
+The upstream gem has had no release since 2.4.0 (September 2023) and no active maintainer
+([#268](https://github.com/citusdata/activerecord-multi-tenant/issues/268)), so no released
+version works on Rails 7.2, 8.0 or 8.1. This fork collects the fixes that were sitting in
+upstream pull requests (authors kept on their commits), adds the missing ones, and runs CI
+against every supported Rails/Ruby/Citus combination.
+
+It is a drop-in replacement: same `MultiTenant` API, same `require` path. Everything is
+also offered back upstream; if upstream starts releasing again, switching back is a one-line
+Gemfile change.
 
 Introduction Post: https://www.citusdata.com/blog/2017/01/05/easily-scale-out-multi-tenant-apps/
 
@@ -12,8 +23,11 @@ Enables easy scale-out by adding the tenant context to your queries, enabling th
 Add the following to your Gemfile:
 
 ```ruby
-gem 'activerecord-multi-tenant'
+gem 'activerecord-multi-tenant-next'
 ```
+
+If you are coming from `activerecord-multi-tenant`, remove that line from your Gemfile; the two
+gems ship the same files and should not be installed together.
 
 ## Supported Rails versions
 

@@ -11,3 +11,4 @@ coverage/
 docs/build/
 .yardoc/
 tmp/
+*.gem

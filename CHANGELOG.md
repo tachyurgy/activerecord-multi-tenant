@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 2.5.0      2026-10-02
+First release of the maintained fork, published as `activerecord-multi-tenant-next`.
+
 * Adds support for Rails 7.2 (#239), 8.0 (#260) and 8.1
 * Adds Ruby 3.4 to the test matrix, and makes CI actually install each appraisal gemfile (#264)
 * Fixes `update_all` writing `Arel.sql(...)` values as literal strings inside `MultiTenant.with` (#278)
