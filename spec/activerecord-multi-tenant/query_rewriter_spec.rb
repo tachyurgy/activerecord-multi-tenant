@@ -37,6 +37,19 @@ describe 'Query Rewriter' do
       end.to change { project.reload.name }.from('Project 1').to('New Name')
     end
 
+    it 'treats Arel.sql values as SQL expressions inside a tenant' do
+      pending 'update_all inside MultiTenant.with quotes Arel.sql values as literals (#278)'
+      other_account = Account.create!(name: 'Other Account')
+      other_project = Project.create!(name: 'Project 2', account: other_account)
+
+      MultiTenant.with(account) do
+        Project.update_all(name: Arel.sql('UPPER(name)'))
+      end
+
+      expect(project.reload.name).to eq('PROJECT 1')
+      expect(other_project.reload.name).to eq('Project 2')
+    end
+
     it 'update the record' do
       expect do
         MultiTenant.with(account) do
@@ -234,6 +247,32 @@ describe 'Query Rewriter' do
       expect do
         ActiveRecord::Base.connection.update('SELECT 1')
       end.not_to raise_error
+    end
+  end
+
+  context 'when updating counters' do
+    let!(:account) { Account.create!(name: 'Test Account') }
+    let!(:comment) { Comment.create!(account_id: account.id, commentable_id: 1, commentable_type: 'Post') }
+
+    it 'increments the counter with increment_counter inside a tenant' do
+      pending 'increment_counter inside MultiTenant.with sets the counter to NULL (#279)'
+
+      MultiTenant.with(account) do
+        Comment.increment_counter(:replies_count, comment.id)
+      end
+
+      expect(comment.reload.replies_count).to eq(1)
+    end
+
+    it 'applies update_counters inside a tenant' do
+      pending 'update_counters inside MultiTenant.with sets the counter to NULL (#279)'
+
+      MultiTenant.with(account) do
+        Comment.update_counters(comment.id, replies_count: 3)
+        Comment.update_counters(comment.id, replies_count: -1)
+      end
+
+      expect(comment.reload.replies_count).to eq(2)
     end
   end
 
