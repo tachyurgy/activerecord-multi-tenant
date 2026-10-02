@@ -108,6 +108,13 @@ module MultiTenant
 
     alias visit_Arel_Nodes_TableAlias visit_Arel_Table
 
+    # A SelectManager can appear inside a condition, e.g. as the right-hand
+    # side of an IN. Neither Arel's DepthFirst (Rails 6.0) nor the gem's copy
+    # of it (Rails 6.1+) knows how to visit one, so descend into its AST here.
+    def visit_Arel_SelectManager(obj, *)
+      visit obj.ast
+    end
+
     def visit_Arel_Nodes_SelectCore(obj, *_args)
       nest_context(obj) do
         @current_context.discover_relations do
