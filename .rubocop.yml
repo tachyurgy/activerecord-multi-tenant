@@ -61,3 +61,4 @@ Metrics/BlockNesting:
 Naming/FileName:
   Exclude:
     - 'lib/activerecord-multi-tenant.rb'
+    - 'lib/activerecord-multi-tenant-next.rb'
