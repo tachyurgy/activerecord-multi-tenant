@@ -24,6 +24,9 @@ if ENV['CI'] == 'true'
   SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 end
 
+# Rails 6.0 and 6.1 reference ::Logger without requiring it, which raises a
+# NameError since concurrent-ruby 1.3.5 stopped loading logger for them.
+require 'logger'
 require 'active_record/railtie'
 require 'action_controller/railtie'
 require 'rspec/rails'
