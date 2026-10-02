@@ -36,13 +36,16 @@ module Arel
       tenant_key = MultiTenant.partition_key(MultiTenant.current_tenant_class)
       tenant_id = MultiTenant.current_tenant_id
 
-      # Build an Arel query
+      # Build an Arel query. Only Active Record 7.2 and 8.0 take the
+      # connection as the first argument of build_arel; every other version
+      # takes only aliases, which is required (without a default) in 6.0 and 8.1.
       arel = if eager_loading?
                apply_join_dependency.arel
-             elsif ActiveRecord.gem_version >= Gem::Version.create('7.2.0')
+             elsif ActiveRecord.gem_version >= Gem::Version.create('7.2.0') &&
+                   ActiveRecord.gem_version < Gem::Version.create('8.1.0')
                build_arel(klass.connection)
              else
-               build_arel
+               build_arel(nil)
              end
 
       arel.source.left = table
