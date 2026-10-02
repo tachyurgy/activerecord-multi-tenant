@@ -29,6 +29,14 @@ describe 'Query Rewriter' do
       end.to change { project.reload.name }.from('Project 1').to('New Name')
     end
 
+    it 'updates the records when the current tenant is an id' do
+      expect do
+        MultiTenant.with(account.id) do
+          Project.joins(:manager).update_all(name: 'New Name')
+        end
+      end.to change { project.reload.name }.from('Project 1').to('New Name')
+    end
+
     it 'update the record' do
       expect do
         MultiTenant.with(account) do
